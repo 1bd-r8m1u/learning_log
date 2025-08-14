@@ -1,2 +1,1 @@
-# learning_log
-to keep up with progress
+''' to track time put in and concepts learnt '''
