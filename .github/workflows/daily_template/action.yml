@@ -1,1 +1,43 @@
+name: "Daily Learning Log Template"
+description: "Create a daily learning log template if it doesn't already exist."
+inputs:
+  entry-dir:
+    description: 'Directory to store daily entries'
+    required: false
+    default: 'entries'
+runs:
+  using: "composite"
+  steps:
+    - name: Set date variable
+      shell: bash
+      run: echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
+    - name: Check if entry exists
+      shell: bash
+      run: |
+        if [ -f "${{ inputs.entry-dir }}/${DATE}.md" ]; then
+          echo "Entry for $DATE already exists."
+          exit 0
+        fi
+
+    - name: Create daily template
+      shell: bash
+      run: |
+        mkdir -p ${{ inputs.entry-dir }}
+        cat <<EOF > ${{ inputs.entry-dir }}/${DATE}.md
+        # ${DATE}
+
+        **Goal:**  
+        **Time spent:**  
+        **Learnings:**  
+        **Next steps:**  
+        EOF
+
+    - name: Commit changes
+      shell: bash
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add ${{ inputs.entry-dir }}/${DATE}.md
+        git commit -m "Auto-create daily template for ${DATE}" || echo "No changes to commit"
+        git push
