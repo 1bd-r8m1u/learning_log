@@ -1,0 +1,43 @@
+name: Daily Learning Log Template
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # runs every day at 09:00 UTC
+  workflow_dispatch:      # lets you trigger it manually for testing
+
+jobs:
+  create-entry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set date variable
+        run: echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: Check if entry exists
+        run: |
+          if [ -f "entries/${DATE}.md" ]; then
+            echo "Entry for $DATE already exists."
+            exit 0
+          fi
+
+      - name: Create daily template
+        run: |
+          mkdir -p entries
+          cat <<EOF > entries/${DATE}.md
+          # ${DATE}
+
+          **Goal:**  
+          **Time spent:**  
+          **Learnings:**  
+          **Next steps:**  
+          EOF
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add entries/${DATE}.md
+          git commit -m "Auto-create daily template for ${DATE}" || echo "No changes to commit"
+          git push
